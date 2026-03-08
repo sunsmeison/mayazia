@@ -58,7 +58,20 @@
             justify-content: space-between; height: 100%;
         }
         .product-card img { width: 100%; height: 180px; object-fit: contain; margin-bottom: 15px; cursor: pointer; }
-        .product-title { color: #007185; text-decoration: none; font-weight: bold; font-size: 15px; height: 40px; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; margin-bottom: 5px; }
+        .product-title { 
+            color: #007185; 
+            text-decoration: none; 
+            font-weight: bold; 
+            font-size: 15px; 
+            height: 40px; 
+            overflow: hidden; 
+            display: -webkit-box; 
+            -webkit-line-clamp: 2; 
+            -webkit-box-orient: vertical; 
+            margin-bottom: 5px; 
+            cursor: pointer;
+        }
+        .product-title:hover { color: #c45500; text-decoration: underline; }
         .price { font-size: 20px; font-weight: bold; color: #B12704; margin-bottom: 15px; }
         .add-btn { padding: 10px; border: none; background: #ffd814; cursor: pointer; border-radius: 5px; font-weight: bold; width: 100%; }
         
@@ -124,29 +137,42 @@
         location.reload();
     }
 
+    const backupProducts = [
+        { _id: "1", title: "iPhone 15 Pro", category: "phone", brand: "Apple", price: {current: 3200, currency: "₾"}, thumbnail: "https://m.media-amazon.com/images/I/81SigAnN7pL._AC_SL1500_.jpg" },
+        { _id: "2", title: "Samsung Galaxy S24", category: "phone", brand: "Samsung", price: {current: 2800, currency: "₾"}, thumbnail: "https://m.media-amazon.com/images/I/71JL6mS9o1L.jpg" },
+        { _id: "3", title: "MacBook Air M3", category: "laptop", brand: "Apple", price: {current: 4500, currency: "₾"}, thumbnail: "https://m.media-amazon.com/images/I/71ItM99uNML.jpg" },
+        { _id: "4", title: "HP Victus Gaming", category: "laptop", brand: "HP", price: {current: 2200, currency: "₾"}, thumbnail: "https://m.media-amazon.com/images/I/71Vf68vSURL._AC_SL1500_.jpg" }
+    ];
+
     async function loadProducts() {
         container.innerHTML = "<h3>იტვირთება...</h3>";
         try {
             const res = await fetch("https://api.everrest.educata.dev/shop/products/all?page_index=1&page_size=50");
+            if (!res.ok) throw new Error();
             const result = await res.json();
             allProducts = result.products;
-            displayProducts(allProducts);
         } catch (e) {
-            container.innerHTML = "<h3>შეცდომა მონაცემების ჩატვირთვისას</h3>";
+            allProducts = backupProducts;
         }
+        displayProducts(allProducts);
     }
 
     function displayProducts(products) {
         container.innerHTML = "";
+        if(products.length === 0) {
+            container.innerHTML = "<h3>პროდუქტები ვერ მოიძებნა</h3>";
+            return;
+        }
         products.forEach(p => {
             const card = document.createElement("div");
             card.className = "product-card";
-            // აქ არის მთავარი ლოგიკა: თუ სურათი არ იტვირთება, ვმალავთ მთლიან card-ს
+            // ჩამატებულია window.location.href გადასასვლელად
             card.innerHTML = `
                 <img src="${p.thumbnail}" 
-                     onerror="this.closest('.product-card').style.display='none';">
+                     onclick="window.location.href='product.html?id=${p._id}'"
+                     onerror="this.src='https://via.placeholder.com/200x180?text=No+Image'">
                 <div>
-                    <a class="product-title">${p.title}</a>
+                    <a href="product.html?id=${p._id}" class="product-title">${p.title}</a>
                     <div class="price">${p.price.current} ${p.price.currency}</div>
                 </div>
                 <button class="add-btn" onclick="addToCart('${p._id}')">🛒 კალათაში დამატება</button>
@@ -161,14 +187,9 @@
         const maxPrice = parseFloat(document.getElementById("priceFilter").value);
 
         const filtered = allProducts.filter(p => {
-            const title = p.title.toLowerCase();
-            const matchesSearch = title.includes(search);
+            const matchesSearch = p.title.toLowerCase().includes(search);
             const matchesPrice = p.price.current <= maxPrice;
-            const pCat = (p.category?.name || p.category || "").toLowerCase();
-            let matchesCat = (cat === "all");
-            if (cat === "phone") matchesCat = pCat.includes("phone") || title.includes("iphone");
-            if (cat === "laptop") matchesCat = pCat.includes("laptop");
-            
+            let matchesCat = (cat === "all") || (p.category === cat) || (p.category?.name?.toLowerCase().includes(cat));
             return matchesSearch && matchesPrice && matchesCat;
         });
         displayProducts(filtered);
@@ -183,8 +204,8 @@
         let cart = JSON.parse(localStorage.getItem("cart")) || [];
         const product = allProducts.find(p => p._id === id);
         if (!product) return;
-
-        const existing = cart.find(i => i.id === id);
+        
+        const existing = cart.find(item => item.id === id);
         if (existing) { existing.qty++; } 
         else { cart.push({ id, qty: 1, title: product.title, price: product.price.current, image: product.thumbnail }); }
         
