@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="ka">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>შესვლა - MyGela</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
+        body { background: #f0f2f5; display: flex; justify-content: center; align-items: center; height: 100vh; }
+        .login-container { background: white; padding: 40px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); width: 100%; max-width: 400px; text-align: center; }
+        .logo { font-size: 32px; font-weight: bold; color: #232f3e; text-decoration: none; margin-bottom: 25px; display: block; }
+        h2 { margin-bottom: 20px; color: #111; font-size: 22px; }
+        .form-group { margin-bottom: 15px; text-align: left; }
+        .form-group label { display: block; margin-bottom: 5px; font-size: 14px; font-weight: bold; }
+        .form-group input { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; outline: none; }
+        .login-submit { width: 100%; padding: 12px; background: #ffd814; border: 1px solid #fcd200; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 16px; margin-top: 10px; }
+        .login-submit:hover { background: #f7ca00; }
+        .error-msg { color: #b12704; font-size: 14px; margin-top: 10px; display: none; padding: 10px; background: #fdf0ed; border-radius: 4px; }
+        .divider { margin: 20px 0; display: flex; align-items: center; text-align: center; color: #777; }
+        .divider::before, .divider::after { content: ""; flex: 1; border-bottom: 1px solid #ddd; }
+        .divider:not(:empty)::before { margin-right: .5em; }
+        .divider:not(:empty)::after { margin-left: .5em; }
+        .register-btn { display: block; width: 100%; padding: 10px; background: #e7e9ec; border: 1px solid #adb1b8; border-radius: 4px; text-decoration: none; color: black; font-size: 14px; }
+        .back-home { margin-top: 20px; display: block; text-decoration: none; color: #007185; font-size: 13px; }
+    </style>
+</head>
+<body>
+
+<div class="login-container">
+    <a href="index_project.html" class="logo">MyGela</a>
+    <h2>სისტემაში შესვლა</h2>
+    
+    <form id="loginForm">
+        <div class="form-group">
+            <label>ელ-ფოსტა</label>
+            <input type="email" id="email" placeholder="example@gmail.com" required>
+        </div>
+        <div class="form-group">
+            <label>პაროლი</label>
+            <input type="password" id="password" placeholder="******" required>
+        </div>
+        <p id="errorBox" class="error-msg"></p>
+        <button type="submit" class="login-submit">შესვლა</button>
+    </form>
+
+    <div class="divider">ახალი ხარ MyGela-ზე?</div>
+    <a href="register.html" class="register-btn">შექმენი შენი MyGela ანგარიში</a>
+    <a href="index_project.html" class="back-home">← მთავარ გვერდზე დაბრუნება</a>
+</div>
+
+<script>
+    document.getElementById('loginForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+        
+        const email = document.getElementById('email').value.trim();
+        const password = document.getElementById('password').value;
+        const errorBox = document.getElementById('errorBox');
+
+        // 1. წამოვიღოთ რეგისტრირებული მომხმარებლები (გამოვიყენოთ იგივე გასაღები რაც register-ში)
+        const users = JSON.parse(localStorage.getItem('mygela_users')) || [];
+
+        // 2. ვეძებთ მომხმარებელს, რომელსაც ემთხვევა მონაცემები
+        const foundUser = users.find(u => u.email === email && u.password === password);
+
+        if (foundUser) {
+            // 3. თუ იპოვე, შეინახე მიმდინარე სესია
+            const sessionInfo = {
+                firstName: foundUser.firstName,
+                lastName: foundUser.lastName,
+                email: foundUser.email
+            };
+            
+            localStorage.setItem('user_info', JSON.stringify(sessionInfo));
+            
+            alert(`მოგესალმებით, ${foundUser.firstName}! ✅`);
+            window.location.href = 'index_project.html';
+        } else {
+            // 4. თუ ვერ იპოვე, აჩვენე შეცდომა
+            errorBox.style.display = 'block';
+            errorBox.innerText = 'არასწორი მეილი ან პაროლი!';
+        }
+    });
+</script>
+
+</body>
+</html>

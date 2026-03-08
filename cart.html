@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="ka">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <title>კალათა - MyGela</title>
+    <style>
+        body { font-family: sans-serif; background: #f4f4f4; padding: 0; margin: 0; }
+        
+        header {
+            background: #232f3e;
+            color: white;
+            padding: 1rem 2rem;
+            display: flex;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: white;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .container { padding: 20px; max-width: 1000px; margin: 0 auto; }
+
+        .cart-card { background: white; padding: 15px; border-radius: 8px; display: flex; align-items: center; margin-bottom: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .cart-card img { width: 80px; height: 80px; object-fit: contain; margin-right: 15px; }
+        .details { flex: 1; }
+        
+        .product-link { text-decoration: none; color: #007185; }
+        .product-link:hover { text-decoration: underline; color: #c45500; }
+
+        .qty-controls button { padding: 5px 10px; cursor: pointer; border: 1px solid #ddd; background: #eee; border-radius: 4px; }
+        .remove-btn { background: #ff4d4d; color: white; padding: 8px 12px; cursor: pointer; border-radius: 4px; font-size: 14px; border: none; }
+        
+        .total-section { background: white; padding: 20px; border-radius: 8px; margin-top: 20px; text-align: right; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        
+        .checkout-btn { background: #ffd814; border: 1px solid #fcd200; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; margin-left: 10px; }
+        .shop-btn { padding: 10px 20px; cursor: pointer; border-radius: 8px; border: 1px solid #ddd; background: white; text-decoration: none; color: black; display: inline-block; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <a href="index_project.html" class="logo">MyGela</a>
+    </header>
+
+    <div class="container">
+        <h2>🛒 შენი კალათა</h2>
+        <div id="cartContainer"></div>
+
+        <div class="total-section">
+            <h3>ჯამური ფასი: <span id="totalPrice">0</span> ₾</h3>
+            <a href="index_project.html" class="shop-btn">გაგრძელება შოპინგის</a>
+            <button class="checkout-btn" onclick="checkout()">გადახდა 💳</button>
+        </div>
+    </div>
+
+<script>
+    function renderCart() {
+        let cart = JSON.parse(localStorage.getItem("cart")) || [];
+        const container = document.getElementById("cartContainer");
+        container.innerHTML = "";
+
+        if (cart.length === 0) {
+            container.innerHTML = "<h4 style='text-align: center; padding: 50px;'>კალათა ცარიელია</h4>";
+            document.getElementById("totalPrice").textContent = "0";
+            return;
+        }
+
+        let total = 0;
+        cart.forEach((item, index) => {
+            total += item.price * item.qty;
+            container.innerHTML += `
+            <div class="cart-card">
+                <img src="${item.image}" onerror="this.src='https://via.placeholder.com/80?text=No+Img'">
+                <div class="details">
+                    <a href="product.html?id=${item.id}" class="product-link">
+                        <h3>${item.title}</h3>
+                    </a>
+                    <div style="color: #666; margin: 5px 0;">ფასი: ${item.price} ₾</div>
+                    <div class="qty-controls">
+                        <button onclick="changeQty(${index}, -1)">−</button>
+                        <span style="margin: 0 10px; font-weight: bold;">${item.qty}</span>
+                        <button onclick="changeQty(${index}, 1)">+</button>
+                    </div>
+                </div>
+                <button class="remove-btn" onclick="removeItem(${index})">წაშლა</button>
+            </div>
+            `;
+        });
+        document.getElementById("totalPrice").textContent = total.toLocaleString();
+    }
+
+    function checkout() {
+        let cart = JSON.parse(localStorage.getItem("cart")) || [];
+        if (cart.length === 0) return alert("კალათა ცარიელია!");
+        alert("შეკვეთა მიღებულია! ✅");
+        localStorage.removeItem("cart");
+        renderCart();
+    }
+
+    function changeQty(i, delta) {
+        let cart = JSON.parse(localStorage.getItem("cart")) || [];
+        cart[i].qty += delta;
+        if (cart[i].qty < 1) cart[i].qty = 1;
+        localStorage.setItem("cart", JSON.stringify(cart));
+        renderCart();
+    }
+
+    function removeItem(i) {
+        if(confirm("ნამდვილად გსურთ ნივთის წაშლა?")) {
+            let cart = JSON.parse(localStorage.getItem("cart")) || [];
+            cart.splice(i, 1);
+            localStorage.setItem("cart", JSON.stringify(cart));
+            renderCart();
+        }
+    }
+
+    renderCart();
+</script>
+</body>
+</html>
